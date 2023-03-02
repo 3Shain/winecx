@@ -2831,6 +2831,10 @@ void virtual_get_system_info( SYSTEM_BASIC_INFORMATION *info, BOOL wow64 )
     info->PageSize                = page_size;
     info->MmLowestPhysicalPage    = 1;
     info->MmNumberOfPhysicalPages = info->MmHighestPhysicalPage - info->MmLowestPhysicalPage;
+    // HACK: fake double ram
+    if(info->MmNumberOfPhysicalPages * page_size < 0x3fffff000) {
+        info->MmNumberOfPhysicalPages *= 2;
+    }
     info->AllocationGranularity   = granularity_mask + 1;
     info->LowestUserAddress       = (void *)0x10000;
     info->ActiveProcessorsAffinityMask = get_system_affinity_mask();
