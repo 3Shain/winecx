@@ -621,6 +621,28 @@ static void create_bios_system_values( HKEY bios_key, const char *buf, UINT len 
         set_value_from_smbios_string( bios_key, L"SystemSKU", 0, buf, offset, len );
         set_value_from_smbios_string( bios_key, L"SystemFamily", 0, buf, offset, len );
     }
+
+    WCHAR *env = NULL;
+    if(env = _wgetenv( L"GIWINESYSMANU" ))
+    {
+        set_reg_value( bios_key, L"SystemManufacturer", env );
+    }
+    if(env = _wgetenv( L"GIWINESYSPRODNAME" ))
+    {
+        set_reg_value( bios_key, L"SystemProductName", env );
+    }
+    if(env = _wgetenv( L"GIWINESYSVER" ))
+    {
+        set_reg_value( bios_key, L"SystemVersion", env );
+    }
+    if(env = _wgetenv( L"GIWINESYSFAML" ))
+    {
+        set_reg_value( bios_key, L"SystemFamily", env );
+    }
+    if(env = _wgetenv( L"GIWINESYSSKU" ))
+    {
+        set_reg_value( bios_key, L"SystemSKU", env );
+    }
 }
 
 static void create_bios_key( HKEY system_key )
@@ -659,6 +681,16 @@ static void create_hardware_registry_keys(void)
     get_namestring( namestr );
     get_vendorid( vendorid );
     NtQuerySystemInformation( SystemCpuInformation, &sci, sizeof(sci), NULL );
+
+    WCHAR* env = NULL;
+    if(env = _wgetenv(L"GIWINECPUVID"))
+    {
+        wcscpy(vendorid, env);
+    }
+    if(env = _wgetenv(L"GIWINECPUNAME"))
+    {
+        wcscpy(namestr, env);
+    }
 
     power_info = HeapAlloc( GetProcessHeap(), 0, sizeof_power_info );
     if (power_info == NULL)
@@ -842,8 +874,14 @@ static void create_computer_name_keys(void)
     if (!RegOpenKeyW( key, L"ComputerName", &subkey ))
     {
         DWORD type, size = sizeof(buffer);
+        WCHAR *env = NULL;
 
         if (RegQueryValueExW( subkey, L"ComputerName", NULL, &type, (BYTE *)buffer, &size )) size = 0;
+        if(env = _wgetenv( L"GIWINEPCNAME" ))
+        {
+            wcscpy((WCHAR*)buffer, env);
+            RegSetValueExW( subkey, L"ComputerName", 0, type, (const BYTE *)buffer, size );
+        }
         RegCloseKey( subkey );
         if (size && !RegCreateKeyExW( key, L"ActiveComputerName", 0, NULL, REG_OPTION_VOLATILE,
                                       KEY_ALL_ACCESS, NULL, &subkey, NULL ))

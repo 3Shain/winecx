@@ -1270,6 +1270,11 @@ static WCHAR *get_baseboard_product( const char *buf, UINT len )
 
 static WCHAR *get_baseboard_serialnumber( const char *buf, UINT len )
 {
+    WCHAR* env = NULL;
+    if(env = _wgetenv(L"GIWINEBBSN"))
+    {
+        return wcsdup(env);
+    }
     WCHAR *ret = get_baseboard_string( 4, buf, len );
     if (!ret) return wcsdup( L"None" );
     return ret;
@@ -1684,6 +1689,11 @@ static WCHAR *get_compsysproduct_identifyingnumber( const char *buf, UINT len )
 
 static WCHAR *get_compsysproduct_name( const char *buf, UINT len )
 {
+    WCHAR* env = NULL;
+    if(env = _wgetenv(L"GIWINESYSPRODNAME"))
+    {
+        return wcsdup(env);
+    }
     WCHAR *ret = get_compsysproduct_string( 2, buf, len );
     if (!ret) return wcsdup( L"Wine" );
     return ret;
@@ -1712,6 +1722,11 @@ done:
 
 static WCHAR *get_compsysproduct_vendor( const char *buf, UINT len )
 {
+    WCHAR* env = NULL;
+    if(env = _wgetenv(L"GIWINESYSMANU"))
+    {
+        return wcsdup(env);
+    }
     WCHAR *ret = get_compsysproduct_string( 1, buf, len );
     if (!ret) return wcsdup( L"The Wine Project" );
     return ret;
@@ -1719,6 +1734,11 @@ static WCHAR *get_compsysproduct_vendor( const char *buf, UINT len )
 
 static WCHAR *get_compsysproduct_version( const char *buf, UINT len )
 {
+    WCHAR* env = NULL;
+    if(env = _wgetenv(L"GIWINESYSVER"))
+    {
+        return wcsdup(env);
+    }
     WCHAR *ret = get_compsysproduct_string( 3, buf, len );
     if (!ret) return wcsdup( L"1.0" );
     return ret;
@@ -3329,6 +3349,12 @@ static void regs_to_str( int *regs, unsigned int len, WCHAR *buffer )
 }
 static void get_processor_manufacturer( WCHAR *manufacturer, UINT len )
 {
+    WCHAR* env = NULL;
+    if(env = _wgetenv(L"GIWINECPUVID"))
+    {
+        wcscpy(manufacturer, env);
+        return;
+    }
     int tmp, regs[4] = {0, 0, 0, 0};
 
     do_cpuid( 0, regs );
@@ -3387,6 +3413,12 @@ static void get_processor_id( WCHAR *processor_id, UINT len )
 }
 static void get_processor_name( WCHAR *name )
 {
+    WCHAR* env = NULL;
+    if(env = _wgetenv(L"GIWINECPUNAME"))
+    {
+        wcscpy(name, env);
+        return;
+    }
     int regs[4] = {0, 0, 0, 0};
     int i;
 
