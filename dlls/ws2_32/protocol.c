@@ -28,8 +28,78 @@ WINE_DEFAULT_DEBUG_CHANNEL(winsock);
 WINE_DECLARE_DEBUG_CHANNEL(winediag);
 
 unixlib_handle_t ws_unix_handle = 0;
+extern char host_redirect[8192];
 
 #define WS_CALL(func, params) __wine_unix_call( ws_unix_handle, ws_unix_ ## func, params )
+
+const char * WINAPI inet_ntop( int family, void *addr, char *buffer, SIZE_T len );
+static int perform_host_redirect(const char* name, void* addr)
+{
+    int i = 0;
+    char addr_str[20];
+    while(1)
+    {
+        int j = i, k = 0;
+        if(host_redirect[j]=='\0')
+        {
+            return 0; // no matched record
+        }
+        while(1)
+        {
+            if(host_redirect[j]=='=')
+            {
+                j++;
+                if(name[k]=='\0')
+                {
+                    // fullly matched
+                    int len = 0;
+                    while(host_redirect[j+len]!=';' && host_redirect[j+len]!='\0')
+                    {
+                        len++;
+                    }
+                    memcpy((void*)addr_str,(void*)(host_redirect + j), len);
+                    addr_str[len] = '\0';
+                    return inet_pton(AF_INET, addr_str, addr);
+                } else
+                {
+                    // name is longer than this entry
+                    while(host_redirect[j]!=';' && host_redirect[j]!='\0')
+                    {
+                        j++;
+                    }
+                    if(host_redirect[j]=='\0')
+                    {
+                        i = j;
+                        break; // no matched record
+                    }
+                    i = j + 1;
+                    // 0.0;another.record
+                    //    ^j
+                    //     ^i = j+1
+                    break;
+                }
+            }
+            if(host_redirect[j] == name[k])
+            {
+                j++; k++;
+            } else
+            {
+                // a record not match
+                while(host_redirect[j]!=';' && host_redirect[j]!='\0')
+                {
+                    j++;
+                }
+                if(host_redirect[j]=='\0')
+                {
+                    i = j;
+                    break; // no matched record
+                }
+                i = j + 1;
+                break;
+            }
+        }
+    }
+}
 
 static char *get_fqdn(void)
 {
@@ -221,6 +291,16 @@ int WINAPI getaddrinfo( const char *node, const char *service,
 
     free( fqdn );
     free( nodev6 );
+
+    struct addrinfo *ai;
+    for (ai = *info; ai != NULL; ai = ai->ai_next)
+    {
+        if(ai->ai_family == AF_INET)
+        {
+            struct sockaddr_in *sin = (struct sockaddr_in *)ai->ai_addr;
+            perform_host_redirect(node, &(sin->sin_addr));
+        }
+    }
 
 done:
     if (!ret && TRACE_ON(winsock))
@@ -959,6 +1039,11 @@ struct hostent * WINAPI gethostbyname( const char *name )
         }
 
         SetLastError( ret );
+
+        if(!ret) {
+            perform_host_redirect(name, params.host->h_addr_list[0]);
+        }
+
         return ret ? NULL : params.host;
     }
 

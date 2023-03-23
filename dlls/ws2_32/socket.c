@@ -156,6 +156,7 @@ DECLARE_CRITICAL_SECTION(cs_socket_list);
 
 static SOCKET *socket_list;
 static unsigned int socket_list_size;
+char host_redirect[8192] = {0};
 
 const char *debugstr_sockaddr( const struct sockaddr *a )
 {
@@ -557,6 +558,8 @@ BOOL WINAPI DllMain( HINSTANCE instance, DWORD reason, void *reserved )
     switch (reason)
     {
     case DLL_PROCESS_ATTACH:
+        char* hosts = getenv( "GIWINEHOSTS" );
+        strcpy((char *)host_redirect ,hosts ? hosts: "");
         return !NtQueryVirtualMemory( GetCurrentProcess(), instance, MemoryWineUnixFuncs,
                                       &ws_unix_handle, sizeof(ws_unix_handle), NULL );
 
