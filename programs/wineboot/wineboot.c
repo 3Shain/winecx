@@ -760,6 +760,12 @@ static void create_hardware_registry_keys(void)
             set_reg_value( hkey, L"ProcessorNameString", namestr );
             set_reg_value( hkey, L"VendorIdentifier", vendorid );
             RegSetValueExW( hkey, L"~MHz", 0, REG_DWORD, (BYTE *)&power_info[i].MaxMhz, sizeof(DWORD) );
+            if(env = _wgetenv(L"GIWINECPUFREQ"))
+            {
+                WCHAR* end = NULL;
+                ULONG freq = wcstoul(env, &end, 10);
+                RegSetValueExW( hkey, L"~MHz", 0, REG_DWORD, (BYTE *)&freq, sizeof(DWORD) );
+            }
             RegCloseKey( hkey );
         }
         if (sci.ProcessorArchitecture != PROCESSOR_ARCHITECTURE_ARM &&

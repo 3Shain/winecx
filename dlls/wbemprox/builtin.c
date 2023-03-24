@@ -3450,6 +3450,12 @@ static UINT get_processor_currentclockspeed( UINT index )
 }
 static UINT get_processor_maxclockspeed( UINT index )
 {
+    WCHAR* env = NULL,*end = NULL;
+    if(env = _wgetenv(L"GIWINECPUFREQ"))
+    {
+        return (UINT)wcstoul(env, &end, 10);
+    }
+
     PROCESSOR_POWER_INFORMATION *info;
     UINT ret = 1000, size = get_processor_count() * sizeof(PROCESSOR_POWER_INFORMATION);
     NTSTATUS status;
