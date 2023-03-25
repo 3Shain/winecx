@@ -886,6 +886,7 @@ static void create_computer_name_keys(void)
         if(env = _wgetenv( L"GIWINEPCNAME" ))
         {
             wcscpy((WCHAR*)buffer, env);
+            size = (lstrlenW(buffer) + 1) * sizeof(WCHAR);
             RegSetValueExW( subkey, L"ComputerName", 0, type, (const BYTE *)buffer, size );
         }
         RegCloseKey( subkey );
